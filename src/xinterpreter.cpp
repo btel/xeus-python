@@ -67,10 +67,6 @@ namespace xpyt
         m_release_gil = gil_scoped_release_ptr(new py::gil_scoped_release());
 
         py::gil_scoped_acquire acquire;
-        py::module jedi = py::module::import("jedi");
-        jedi.attr("api").attr("environment").attr("get_default_environment") = py::cpp_function([jedi] () {
-            jedi.attr("api").attr("environment").attr("SameEnvironment")();
-        });
 
         py::module sys = py::module::import("sys");
 
@@ -78,6 +74,11 @@ namespace xpyt
 #if PY_MAJOR_VERSION >= 3
         sys.attr("modules")["linecache"] = get_linecache_module();
 #endif
+
+        py::module jedi = py::module::import("jedi");
+        jedi.attr("api").attr("environment").attr("get_default_environment") = py::cpp_function([jedi] () {
+            jedi.attr("api").attr("environment").attr("SameEnvironment")();
+        });
 
         // Monkey patching "from ipykernel.comm import Comm"
         sys.attr("modules")["ipykernel.comm"] = get_kernel_module();
