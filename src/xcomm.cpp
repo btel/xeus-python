@@ -193,7 +193,13 @@ namespace xpyt
 
         py::class_<hooks_object>(kernel_module, "Hooks")
             .def_static("show_in_pager", &hooks_object::show_in_pager);
-        py::class_<xeus::xhistory_manager>(kernel_module, "HistoryManager");
+        py::class_<xeus::xhistory_manager>(kernel_module, "HistoryManager")
+            .def("get_range", [](xeus::xhistory_manager & me, int session, int start, int stop, bool raw, bool output) {return me.get_range(session, start, stop, raw, output)["history"];},
+                 py::arg("session")=0,
+                 py::arg("start")=0,
+                 py::arg("stop")=1000,
+                 py::arg("raw")=true,
+                 py::arg("output")=false);
 
         XInteractiveShell.def(py::init<>())
             .def_property_readonly("magics_manager", &xinteractive_shell::get_magics_manager)

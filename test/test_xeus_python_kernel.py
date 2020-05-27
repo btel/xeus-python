@@ -105,7 +105,7 @@ class XeusPythonTests(jupyter_kernel_test.KernelTests):
         self.assertEqual(reply['content']['status'], 'ok')
 
     def test_xeus_python_history_manager(self):
-        reply, output_msgs = self.execute_helper(code="get_ipython().history_manager")
+        reply, output_msgs = self.execute_helper(code="assert get_ipython().history_manager is not None")
         self.assertEqual(reply['content']['status'], 'ok')
 
     def test_xeus_python_stdout(self):
