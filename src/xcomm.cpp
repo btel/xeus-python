@@ -194,12 +194,36 @@ namespace xpyt
         py::class_<hooks_object>(kernel_module, "Hooks")
             .def_static("show_in_pager", &hooks_object::show_in_pager);
         py::class_<xeus::xhistory_manager>(kernel_module, "HistoryManager")
+            .def_property_readonly("session_number", [](xeus::xhistory_manager &){return 0;})
             .def("get_range", [](xeus::xhistory_manager & me, int session, int start, int stop, bool raw, bool output) {return me.get_range(session, start, stop, raw, output)["history"];},
                  py::arg("session")=0,
                  py::arg("start")=0,
                  py::arg("stop")=1000,
                  py::arg("raw")=true,
-                 py::arg("output")=false);
+                 py::arg("output")=false)
+            .def("get_range_by_str", 
+                [](xeus::xhistory_manager & me, py::str range_str, bool raw, bool output) 
+                {
+                    auto  range_split = py::cast<std::tuple<std::string, std::string>>(range_str.attr("split")("-"));
+                    int start = std::stoi(std::get<0>(range_split));
+                    int stop = std::stoi(std::get<1>(range_split));
+                    int session = 0;
+                    return me.get_range(session, start, stop, raw, output)["history"];
+                },
+                py::arg("range_str"),
+                py::arg("raw")=true,
+                py::arg("output")=false)
+            .def("search",
+                [](xeus::xhistory_manager & me, std::string pattern, bool raw, bool output, py::object py_n, bool unique)
+                {
+                    int n = py_n.is_none() ? 1000 : py::cast<int>(py_n);
+                    return me.search(pattern, raw, output, n, unique);
+                },
+                py::arg("pattern")="*",
+                py::arg("raw")=true,
+                py::arg("output")=false,
+                py::arg("n") = py::none(),
+                py::arg("unique")=false);
 
         XInteractiveShell.def(py::init<>())
             .def_property_readonly("magics_manager", &xinteractive_shell::get_magics_manager)
