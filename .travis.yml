@@ -47,9 +47,6 @@ install:
     - conda config --set always_yes yes --set changeps1 no
     - conda config --add channels conda-forge
     - conda update -q conda
-    - conda create -n xeus-env python=3.7
-    - conda init
-    - conda activate xeus
     # Host dependencies
     - conda install xeus=0.23.15 -c conda-forge/label/broken -c conda-forge
     - conda install nlohmann_json cppzmq xtl pybind11 pybind11_json jedi pygments ipython ptvsd -c conda-forge
