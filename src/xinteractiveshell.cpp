@@ -5,6 +5,7 @@
 #include "nlohmann/json.hpp"
 
 #include "xdisplay.hpp"
+#include "xutils.hpp"
 
 using namespace pybind11::literals;
 namespace py = pybind11;
@@ -135,24 +136,32 @@ namespace xpyt
     }
 
     // manage payloads
-    // payloads are required by history magics
+    // payloads are required by recall magic
     void xinteractive_shell::set_next_input(std::string s, bool replace)
     {
-        payloads.push_back(std::make_tuple(s, replace));
+        m_payloads.push_back(std::make_tuple(s, replace));
     }
 
     void xinteractive_shell::clear_payloads()
     {
-        payloads.clear();
+        m_payloads.clear();
     }
 
     const xinteractive_shell::payload_type & xinteractive_shell::get_payloads()
     {
-        return payloads;
+        return m_payloads;
+    }
+
+    // run_line required my %rerun magic
+    void xinteractive_shell::run_line(py::str code, bool) 
+    {
+        py::module builtins = py::module::import(XPYT_BUILTINS);
+        std::string filename = "debug_this_thread";
+        auto compiled_code = builtins.attr("compile")(code, filename, "single");
+        exec(compiled_code); 
     }
 
     // define getters
-
     py::object xinteractive_shell::get_magics_manager()
     {
         return m_magics_manager;

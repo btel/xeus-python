@@ -213,6 +213,15 @@ namespace xpyt
                 py::arg("range_str"),
                 py::arg("raw")=true,
                 py::arg("output")=false)
+            .def("get_tail", 
+                [](xeus::xhistory_manager & me, int last_n, bool raw, bool output) 
+                {
+                    return me.get_tail(last_n, raw, output)["history"];
+                },
+                py::arg("last_n"),
+                py::arg("raw")=true,
+                py::arg("output")=false
+            )
             .def("search",
                 [](xeus::xhistory_manager & me, std::string pattern, bool raw, bool output, py::object py_n, bool unique)
                 {
@@ -246,6 +255,9 @@ namespace xpyt
             .def("enable_gui", &xinteractive_shell::enable_gui)
             .def("showtraceback", &xinteractive_shell::showtraceback)
             .def("observe", &xinteractive_shell::observe)
+            .def("run_cell",&xinteractive_shell::run_line,
+                py::arg("code"),
+                py::arg("store_history")=false)
             .def("register_magic_function",
                 &xinteractive_shell::register_magic_function,
                 "Register magic function",

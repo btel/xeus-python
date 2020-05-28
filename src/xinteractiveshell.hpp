@@ -50,6 +50,7 @@ namespace xpyt
 
         // required by history magics
         void set_next_input(std::string s, bool replace);
+        void run_line(py::str code, bool store_history);
 
         // public getters
         py::object get_magics_manager();
@@ -100,6 +101,6 @@ namespace xpyt
         const xeus::xhistory_manager * p_history_manager;
 
         // store jupyter message protocol payloads
-        payload_type payloads;
+        payload_type m_payloads;
     };
 };
