@@ -57,7 +57,8 @@ namespace xpyt
            "bookmark"_a=line_magics["bookmark"],
            //history magics
            "history"_a=line_magics["history"],
-           "recall"_a=line_magics["recall"]
+           "recall"_a=line_magics["recall"],
+           "rerun"_a=line_magics["rerun"]
         );
         cell_magics = py::dict(
             "writefile"_a=cell_magics["writefile"],
