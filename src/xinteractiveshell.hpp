@@ -1,3 +1,4 @@
+#include <vector>
 #include "pybind11/pybind11.h"
 #include "xdisplay.hpp"
 
@@ -24,6 +25,7 @@ namespace xpyt
     class xinteractive_shell
     {
 
+
     public:
         // default constructor
         xinteractive_shell();
@@ -46,6 +48,9 @@ namespace xpyt
         void register_magic_function(py::object func, std::string magic_kind, py::object magic_name);
         void register_magics(py::args args);
 
+        // required by history magics
+        void set_next_input(std::string s, bool replace);
+
         // public getters
         py::object get_magics_manager();
         py::object get_extension_manager();
@@ -58,6 +63,12 @@ namespace xpyt
         py::str get_home_dir() { return m_home_dir;};
 
         const xeus::xhistory_manager & get_history_manager();
+
+        // payload
+        void clear_payloads();
+        using payload_type = std::vector<std::tuple<std::string, bool>>;
+        const payload_type & get_payloads(); //pure C++ not exposed to Python
+
 
     private:
         py::module m_ipy_process;
@@ -79,13 +90,16 @@ namespace xpyt
         // pager, required by %magics
         hooks_object m_hooks;
 
-        //required by pushd
+        // required by pushd
         py::list m_dir_stack;
         py::str m_home_dir;
 
         void init_magics();
 
-        //history manager
+        // history manager
         const xeus::xhistory_manager * p_history_manager;
+
+        // store jupyter message protocol payloads
+        payload_type payloads;
     };
 };

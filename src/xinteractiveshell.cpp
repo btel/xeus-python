@@ -1,10 +1,14 @@
 #include "xinteractiveshell.hpp"
 #include "xeus/xinterpreter.hpp"
 #include "xeus/xhistory_manager.hpp"
+
+#include "nlohmann/json.hpp"
+
 #include "xdisplay.hpp"
 
 using namespace pybind11::literals;
 namespace py = pybind11;
+namespace nl = nlohmann;
 
 namespace xpyt
 {
@@ -51,7 +55,9 @@ namespace xpyt
            "sx"_a=line_magics["sx"],
            "system"_a=line_magics["system"],
            "bookmark"_a=line_magics["bookmark"],
-           "history"_a=line_magics["history"]
+           //history magics
+           "history"_a=line_magics["history"],
+           "recall"_a=line_magics["recall"]
         );
         cell_magics = py::dict(
             "writefile"_a=cell_magics["writefile"],
@@ -125,6 +131,23 @@ namespace xpyt
     void xinteractive_shell::register_magics(py::args args)
     {
         m_magics_manager.attr("register")(*args);
+    }
+
+    // manage payloads
+    // payloads are required by history magics
+    void xinteractive_shell::set_next_input(std::string s, bool replace)
+    {
+        payloads.push_back(std::make_tuple(s, replace));
+    }
+
+    void xinteractive_shell::clear_payloads()
+    {
+        payloads.clear();
+    }
+
+    const xinteractive_shell::payload_type & xinteractive_shell::get_payloads()
+    {
+        return payloads;
     }
 
     // define getters

@@ -34,6 +34,7 @@
 #include "xstream.hpp"
 #include "xtraceback.hpp"
 #include "xutils.hpp"
+#include "xinteractiveshell.hpp"
 
 namespace py = pybind11;
 namespace nl = nlohmann;
@@ -165,6 +166,7 @@ namespace xpyt
                 py::object interactive_ast = ast.attr("Interactive")(interactive_nodes);
 
                 py::object compiled_code = builtins.attr("compile")(code_ast, filename, "exec");
+               
                 py::object compiled_interactive_code = builtins.attr("compile")(interactive_ast, filename, "single");
 
                 if (m_displayhook.ptr() != nullptr)
@@ -181,8 +183,24 @@ namespace xpyt
                 exec(compiled_code);
             }
 
+            xinteractive_shell * xshell = get_kernel_module()
+                .attr("get_ipython")()
+                .cast<xinteractive_shell *>();
+            auto payload = nl::json::array();
+            for (auto & p : xshell->get_payloads())
+            {
+                payload.push_back(
+                    nl::json::object({
+                        {"text", std::get<0>(p)},
+                        {"source", "set_next_input"},
+                        {"replace", std::get<1>(p)}
+                    })
+                );
+            };
+            xshell->clear_payloads();
+
             kernel_res["status"] = "ok";
-            kernel_res["payload"] = nl::json::array();
+            kernel_res["payload"] = payload; 
             kernel_res["user_expressions"] = nl::json::object();
         }
         catch (py::error_already_set& e)

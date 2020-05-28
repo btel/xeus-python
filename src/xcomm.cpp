@@ -204,11 +204,11 @@ namespace xpyt
             .def("get_range_by_str", 
                 [](xeus::xhistory_manager & me, py::str range_str, bool raw, bool output) 
                 {
-                    auto  range_split = py::cast<std::tuple<std::string, std::string>>(range_str.attr("split")("-"));
-                    int start = std::stoi(std::get<0>(range_split));
-                    int stop = std::stoi(std::get<1>(range_split));
+                    py::list  range_split = range_str.attr("split")("-");
+                    int start = std::stoi(py::cast<std::string>(range_split[0]));
+                    int stop = (range_split.size() > 1) ? std::stoi(py::cast<std::string>(range_split[1])) : start + 1;
                     int session = 0;
-                    return me.get_range(session, start, stop, raw, output)["history"];
+                    return me.get_range(session, start - 1, stop - 1, raw, output)["history"];
                 },
                 py::arg("range_str"),
                 py::arg("raw")=true,
@@ -252,7 +252,10 @@ namespace xpyt
                 py::arg("func"),
                 py::arg("magic_kind")="line",
                 py::arg("magic_name")=py::none())
-            .def("register_magics", &xinteractive_shell::register_magics);
+            .def("register_magics", &xinteractive_shell::register_magics)
+            .def("set_next_input", &xinteractive_shell::set_next_input,
+                 py::arg("text"),
+                 py::arg("replace")=true);
 
         py::module::import("IPython.core.interactiveshell").attr("InteractiveShellABC").attr("register")(XInteractiveShell);
 
