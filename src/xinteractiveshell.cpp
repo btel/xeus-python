@@ -155,6 +155,9 @@ namespace xpyt
     // run_line required my %rerun magic
     void xinteractive_shell::run_line(py::str code, bool) 
     {
+        // this is a placeholder for a real implementation
+        // it does not handle multiple statements
+        // nor magics parsing
         py::module builtins = py::module::import(XPYT_BUILTINS);
         std::string filename = "debug_this_thread";
         auto compiled_code = builtins.attr("compile")(code, filename, "single");
