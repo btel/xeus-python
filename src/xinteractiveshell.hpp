@@ -3,11 +3,13 @@
 #include "xdisplay.hpp"
 
 #include "xeus/xhistory_manager.hpp"
+#include "nlohmann/json.hpp"
 
 #ifdef __GNUC__
     #pragma GCC diagnostic ignored "-Wattributes"
 #endif
 
+namespace nl = nlohmann;
 namespace py = pybind11;
 using namespace pybind11::literals;
 
@@ -51,6 +53,9 @@ namespace xpyt
         // required by history magics
         void set_next_input(std::string s, bool replace);
         void run_line(py::str code, bool store_history);
+        
+        // required by pinfo
+        void inspect(std::string, std::string oname, py::kwargs);
 
         // public getters
         py::object get_magics_manager();
@@ -67,7 +72,7 @@ namespace xpyt
 
         // payload
         void clear_payloads();
-        using payload_type = std::vector<std::tuple<std::string, bool>>;
+        using payload_type = std::vector<nl::json>;
         const payload_type & get_payloads(); //pure C++ not exposed to Python
 
 

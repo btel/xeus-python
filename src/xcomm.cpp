@@ -255,6 +255,8 @@ namespace xpyt
             .def("enable_gui", &xinteractive_shell::enable_gui)
             .def("showtraceback", &xinteractive_shell::showtraceback)
             .def("observe", &xinteractive_shell::observe)
+            // for pinfo (?magic)
+            .def("_inspect", &xinteractive_shell::inspect)
             .def("run_cell",&xinteractive_shell::run_line,
                 py::arg("code"),
                 py::arg("store_history")=false)

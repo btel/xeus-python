@@ -104,28 +104,6 @@ namespace xpyt
         py::gil_scoped_acquire acquire;
         nl::json kernel_res;
 
-        if (code.size() >= 2 && code[0] == '?')
-        {
-            std::string result = formatted_docstring(code);
-            if (result.empty())
-            {
-                result = "Object " + code.substr(1) + " not found.";
-            }
-
-            kernel_res["status"] = "ok";
-            kernel_res["payload"] = nl::json::array();
-            kernel_res["payload"][0] = nl::json::object({
-                {"data", {
-                    {"text/plain", result}
-                }},
-                {"source", "page"},
-                {"start", 0}
-            });
-            kernel_res["user_expressions"] = nl::json::object();
-
-            return kernel_res;
-        }
-
         py::module input_transformers = py::module::import("IPython.core.inputtransformer2");
         py::object transformer_manager = input_transformers.attr("TransformerManager")();
         py::str code_copy = transformer_manager.attr("transform_cell")(code);
@@ -186,22 +164,13 @@ namespace xpyt
             xinteractive_shell * xshell = get_kernel_module()
                 .attr("get_ipython")()
                 .cast<xinteractive_shell *>();
-            auto payload = nl::json::array();
-            for (auto & p : xshell->get_payloads())
-            {
-                payload.push_back(
-                    nl::json::object({
-                        {"text", std::get<0>(p)},
-                        {"source", "set_next_input"},
-                        {"replace", std::get<1>(p)}
-                    })
-                );
-            };
-            xshell->clear_payloads();
+            auto payload = xshell->get_payloads(); 
 
             kernel_res["status"] = "ok";
             kernel_res["payload"] = payload; 
             kernel_res["user_expressions"] = nl::json::object();
+
+            xshell->clear_payloads();
         }
         catch (py::error_already_set& e)
         {

@@ -6,6 +6,7 @@
 
 #include "xdisplay.hpp"
 #include "xutils.hpp"
+#include "xinspect.hpp"
 
 using namespace pybind11::literals;
 namespace py = pybind11;
@@ -32,11 +33,13 @@ namespace xpyt
         py::object user_magics =  m_magics_module.attr("UserMagics");
         py::object extension_magics =  m_magics_module.attr("ExtensionMagics");
         py::object history_magics =  m_magics_module.attr("HistoryMagics");
+        py::object ns_magics =  m_magics_module.attr("NamespaceMagics");
         m_magics_manager.attr("register")(osm_magics);
         m_magics_manager.attr("register")(basic_magics);
         m_magics_manager.attr("register")(user_magics);
         m_magics_manager.attr("register")(extension_magics);
         m_magics_manager.attr("register")(history_magics);
+        m_magics_manager.attr("register")(ns_magics);
         m_magics_manager.attr("user_magics") = user_magics("shell"_a=this);
 
         //select magics supported by xeus-python
@@ -59,7 +62,9 @@ namespace xpyt
            //history magics
            "history"_a=line_magics["history"],
            "recall"_a=line_magics["recall"],
-           "rerun"_a=line_magics["rerun"]
+           "rerun"_a=line_magics["rerun"],
+           //namespace magics
+           "pinfo"_a=line_magics["pinfo"]
         );
         cell_magics = py::dict(
             "writefile"_a=cell_magics["writefile"],
@@ -139,7 +144,27 @@ namespace xpyt
     // payloads are required by recall magic
     void xinteractive_shell::set_next_input(std::string s, bool replace)
     {
-        m_payloads.push_back(std::make_tuple(s, replace));
+        nl::json data = nl::json::object({
+            {"text", s},
+            {"source", "set_next_input"},
+            {"replace", replace}
+        });
+
+        m_payloads.push_back(std::move(data));
+    }
+
+    void xinteractive_shell::inspect(std::string, std::string oname, py::kwargs)
+    {
+        auto result = formatted_docstring(oname);
+        nl::json data = nl::json::object({
+            {"data", {
+                {"text/plain", result}
+            }},
+            {"source", "page"},
+            {"start", 0}
+        });
+
+        m_payloads.push_back(std::move(data));
     }
 
     void xinteractive_shell::clear_payloads()
