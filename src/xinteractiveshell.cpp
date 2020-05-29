@@ -34,12 +34,14 @@ namespace xpyt
         py::object extension_magics =  m_magics_module.attr("ExtensionMagics");
         py::object history_magics =  m_magics_module.attr("HistoryMagics");
         py::object ns_magics =  m_magics_module.attr("NamespaceMagics");
+        py::object execution_magics =  m_magics_module.attr("ExecutionMagics");
         m_magics_manager.attr("register")(osm_magics);
         m_magics_manager.attr("register")(basic_magics);
         m_magics_manager.attr("register")(user_magics);
         m_magics_manager.attr("register")(extension_magics);
         m_magics_manager.attr("register")(history_magics);
         m_magics_manager.attr("register")(ns_magics);
+        m_magics_manager.attr("register")(execution_magics);
         m_magics_manager.attr("user_magics") = user_magics("shell"_a=this);
 
         //select magics supported by xeus-python
@@ -64,12 +66,17 @@ namespace xpyt
            "recall"_a=line_magics["recall"],
            "rerun"_a=line_magics["rerun"],
            //namespace magics
-           "pinfo"_a=line_magics["pinfo"]
+           "pinfo"_a=line_magics["pinfo"],
+           //execution magics
+           "timeit"_a=line_magics["timeit"]
         );
         cell_magics = py::dict(
             "writefile"_a=cell_magics["writefile"],
             "sx"_a=cell_magics["sx"],
-            "system"_a=cell_magics["system"]);
+            "system"_a=cell_magics["system"],
+            //execution magics
+            "timeit"_a=cell_magics["timeit"]
+            );
 
         m_magics_manager.attr("magics") = py::dict(
            "line"_a=line_magics,
@@ -113,6 +120,8 @@ namespace xpyt
             throw py::error_already_set();
         }
 
+        // required by timeit magics (which uses user_ns as globals dict)
+        m_user_ns.attr("update")(py::globals());
         return magic_method(arg);
 
     }
@@ -126,6 +135,8 @@ namespace xpyt
             throw py::error_already_set();
         }
 
+        // required by timeit magics (which uses user_ns as globals dict)
+        m_user_ns.attr("update")(py::globals());
         return magic_method(arg, body);
     }
 

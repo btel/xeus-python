@@ -20,6 +20,7 @@
 
 #include "pybind11/pybind11.h"
 #include "pybind11/functional.h"
+#include "pybind11/eval.h"
 
 #include "xcomm.hpp"
 #include "xutils.hpp"
@@ -167,6 +168,35 @@ namespace xpyt
         struct xmock_object
         {
         };
+
+        struct compiler_object {
+            py::module builtins;
+
+            py::object compile(py::object source, py::str filename, py::str mode, int flags=0)
+            {
+                return builtins.attr("compile")(source, filename, mode, flags);
+            }
+               
+            compiler_object()
+            {
+               builtins =  py::module::import(XPYT_BUILTINS);
+            }
+
+            py::object operator()(py::object source, py::str filename, py::str mode)
+            {
+                return compile(source, filename, mode, 0);
+            }
+
+            py::object ast_parse(
+                py::str source,
+                py::str filename="<unknown>",
+                py::str symbol="exec")
+            {
+                 auto ast =  py::module::import("ast");
+                 return compile(source, filename, symbol, py::cast<int>(ast.attr("PyCF_ONLY_AST")));
+            }
+
+        };
     }
 
     struct xmock_kernel
@@ -247,7 +277,7 @@ namespace xpyt
             .def_property_readonly("history_manager", &xinteractive_shell::get_history_manager)
             .def("run_line_magic", &xinteractive_shell::run_line_magic)
             .def("run_cell_magic", &xinteractive_shell::run_cell_magic)
-            // magic is deprecated but some magic functions still use it
+            // magic method is deprecated but some magic functions still use it
             .def("magic", &xinteractive_shell::run_line_magic, "name"_a, "arg"_a="")
             .def("system", &xinteractive_shell::system)
             .def("getoutput", &xinteractive_shell::getoutput)
@@ -255,8 +285,12 @@ namespace xpyt
             .def("enable_gui", &xinteractive_shell::enable_gui)
             .def("showtraceback", &xinteractive_shell::showtraceback)
             .def("observe", &xinteractive_shell::observe)
+            // for timeit timeit
+            .def("transform_cell", [](xinteractive_shell &, py::str raw_cell){return raw_cell;})
+            .def("transform_ast", [](xinteractive_shell &, py::object ast){return ast;})
             // for pinfo (?magic)
             .def("_inspect", &xinteractive_shell::inspect)
+            // generic magics code
             .def("run_cell",&xinteractive_shell::run_line,
                 py::arg("code"),
                 py::arg("store_history")=false)
@@ -270,6 +304,17 @@ namespace xpyt
             .def("set_next_input", &xinteractive_shell::set_next_input,
                  py::arg("text"),
                  py::arg("replace")=true);
+         
+        // define compiler class for timeit magic
+        py::class_<detail::compiler_object> Compiler(kernel_module, "Compiler");
+        Compiler.def(py::init<>())
+            .def("__call__", &detail::compiler_object::operator(), py::is_operator())
+            .def("ast_parse", &detail::compiler_object::ast_parse,
+                 py::arg("code"),
+                 py::arg("filename")="<unknown>",
+                 py::arg("symbol")="exec");
+        XInteractiveShell.attr("compile") = Compiler();
+
 
         py::module::import("IPython.core.interactiveshell").attr("InteractiveShellABC").attr("register")(XInteractiveShell);
 
