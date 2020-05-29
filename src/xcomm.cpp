@@ -226,7 +226,7 @@ namespace xpyt
                 [](xeus::xhistory_manager & me, std::string pattern, bool raw, bool output, py::object py_n, bool unique)
                 {
                     int n = py_n.is_none() ? 1000 : py::cast<int>(py_n);
-                    return me.search(pattern, raw, output, n, unique);
+                    return me.search(pattern, raw, output, n, unique)["history"];
                 },
                 py::arg("pattern")="*",
                 py::arg("raw")=true,
