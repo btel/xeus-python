@@ -291,7 +291,7 @@ namespace xpyt
             // for pinfo (?magic)
             .def("_inspect", &xinteractive_shell::inspect)
             // generic magics code
-            .def("run_cell",&xinteractive_shell::run_line,
+            .def("run_cell",&xinteractive_shell::run_cell,
                 py::arg("code"),
                 py::arg("store_history")=false)
             .def("register_magic_function",
@@ -303,7 +303,7 @@ namespace xpyt
             .def("register_magics", &xinteractive_shell::register_magics)
             .def("set_next_input", &xinteractive_shell::set_next_input,
                  py::arg("text"),
-                 py::arg("replace")=true);
+                 py::arg("replace")=false);
          
         // define compiler class for timeit magic
         py::class_<detail::compiler_object> Compiler(kernel_module, "Compiler");

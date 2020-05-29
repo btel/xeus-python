@@ -4,6 +4,8 @@
 
 #include "nlohmann/json.hpp"
 
+#include "pybind11/eval.h"
+
 #include "xdisplay.hpp"
 #include "xutils.hpp"
 #include "xinspect.hpp"
@@ -189,7 +191,7 @@ namespace xpyt
     }
 
     // run_line required my %rerun magic
-    void xinteractive_shell::run_line(py::str code, bool) 
+    void xinteractive_shell::run_cell(py::str code, bool) 
     {
         // this is a placeholder for a real implementation
         // it does not handle multiple statements
@@ -197,7 +199,10 @@ namespace xpyt
         py::module builtins = py::module::import(XPYT_BUILTINS);
         std::string filename = "debug_this_thread";
         auto compiled_code = builtins.attr("compile")(code, filename, "single");
-        exec(compiled_code); 
+
+        // we need to pass user_ns because in a nested interpreter
+        // we loose global namespace (results of previous evals)
+        exec(compiled_code, m_user_ns);
     }
 
     // define getters
